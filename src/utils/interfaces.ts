@@ -13,7 +13,8 @@ export interface TransactionBody{
     userId:number,
     categoryId:number,
     amount:number,
-    type:TransactionType.EXPENSE|TransactionType.INCOME
+    type:TransactionType.EXPENSE|TransactionType.INCOME,
+    description:string
 }
 
 export interface categoryBody{

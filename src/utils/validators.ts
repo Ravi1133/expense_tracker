@@ -30,7 +30,7 @@ export const registerUserSchema = Joi.object({
         "string.max": "Password cannot exceed 100 characters",
         "any.required": "Password is required",
     }),
-});
+}).required()
 
 export const loginBody=Joi.object({
     email:Joi.string().required().messages({
@@ -39,7 +39,7 @@ export const loginBody=Joi.object({
     password:Joi.string().required().messages({
         "any.required": "Password is required",
     })
-})
+}).required()
 
 export const addTransactionSchema=Joi.object({
     categoryId:Joi.number().required().messages({
@@ -54,8 +54,9 @@ export const addTransactionSchema=Joi.object({
      type:Joi.string().required().valid(TransactionType.EXPENSE,TransactionType.INCOME).messages({
         "any.required":"type is required",
         "any.only":"INCOME and EXPENSE are allowe in Feild"
-    })
-})
+    }),
+    description:Joi.string().max(300)
+}).required()
 
 
 export const addCategorySchema=Joi.object({
@@ -66,7 +67,14 @@ export const addCategorySchema=Joi.object({
         "any.required":"type is required",
         "any.only":"INCOME and EXPENSE are allowe in Feild"
     })
-})
+}).required()
+
+export const updateCategorySchema=Joi.object({
+    name:Joi.string().optional(),
+    type:Joi.string().optional().valid(TransactionType.EXPENSE,TransactionType.INCOME).messages({
+        "any.only":"INCOME and EXPENSE are allowe in Feild"
+    })
+}).min(1).required()
 
 export const validateRegisterBody = (req: Request, res: Response, next:NextFunction) => {
     let { error, value } = registerUserSchema.validate(req.body, {
@@ -109,6 +117,19 @@ export const validateAddTransactionBody = (req: Request, res: Response, next:Nex
 }
 export const validateAddCategoryBody = (req: Request, res: Response, next:NextFunction) => {
     let { error, value } = addCategorySchema.validate(req.body, {
+        abortEarly: true,
+        stripUnknown: true
+    })
+     if (error) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: error.details.map((err) => err.message),
+      });
+    }
+    next()
+}
+export const validateUpdateCategoryBody = (req: Request, res: Response, next:NextFunction) => {
+    let { error, value } = updateCategorySchema.validate(req.body, {
         abortEarly: true,
         stripUnknown: true
     })

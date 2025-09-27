@@ -5,5 +5,6 @@ export enum predefinetext{
     SOMETHING_WENT_WRONG="Something Went Wrong",
     RESOURCE_CREATED="Resource Created",
     RESOURCE_FETCHED="Resource Fetched",
-    NO_DATA_FOUND="No Data Found"
+    NO_DATA_FOUND="No Data Found",
+    STATUS_UPDATED="Status Updated"
 }

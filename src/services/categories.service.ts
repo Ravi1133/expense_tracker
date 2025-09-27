@@ -6,11 +6,10 @@ import { predefinetext } from "../utils/predefineText"
 export const addCategory_service = async (req: Request, res: Response, next: NextFunction) => {
     let { name, type } = req.body as categoryBody
     let categoryData =await prisma.category.create({ data: { name, type } })
-
     return res.status(201).send({ message: predefinetext.RESOURCE_CREATED,category:categoryData })
 }
 
-export const updateCategoriy_service = () => {
+export const updateCategoriy_service = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const deleteCategory_service = () => {
