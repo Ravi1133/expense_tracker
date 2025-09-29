@@ -6,7 +6,7 @@ import { validateToken } from "../utils/utliFunction";
 import { getTransaction_service } from "../services/transaction.service";
 export const transactionRoute=Router()
 transactionRoute.post("/addTransaction",validateToken ,validateAddTransactionBody,addTransaction)
-transactionRoute.get("/getTransaction",validateToken,getTransaction)
+transactionRoute.post("/getTransaction",validateToken,validateTransactionSearch,getTransaction)
 transactionRoute.post("/getTransactions",validateToken,validateTransactionSearch ,getAllTrasaction)
 transactionRoute.delete("/deleteTransaction/:id",validateToken ,deleteTransaction)
 

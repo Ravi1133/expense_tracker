@@ -54,11 +54,11 @@ export const loginUser_service = async (req: Request, res: Response, next: NextF
         }
 
         let token = jwt.sign({ id: userData.id, name: userData.name }, JWT_KEY, { expiresIn: "3d" })
-        let { name, gender, id, status } = userData
+        let { name, gender, id, status ,role} = userData
         return res.status(200).json({
             message: "Login Successfully",
             token: token,
-            email, name, gender, id, status
+            email, name, gender, id, status,role
         })
     } catch (err) {
         next(err)
@@ -87,6 +87,7 @@ export const getUser_service = async (req: Request, res: Response, next: NextFun
         let skip = page - 1 || 1
 
         let userData = await prisma.user.findMany({ where, take, skip, orderBy: { createdAt: "desc" } })
+        console.log("userData",userData)
         let totalCount = await prisma.user.count({ where, orderBy: { createdAt: "desc" } })
         res.status(200).json({ message: predefinetext.RESOURCE_FETCHED, userData, totalCount, page: page, skip, totalPage: Math.ceil(totalCount / take) })
     } catch (err) {

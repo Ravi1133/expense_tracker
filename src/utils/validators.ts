@@ -88,6 +88,15 @@ export const transactionSearch=Joi.object({
     pageSize:Joi.number().optional(),
 
 }).required()
+export const transactionSearchUser=Joi.object({
+    userId:Joi.number().optional(),
+    categoryId:Joi.number().optional(),
+    amount:Joi.number().optional(),
+    date:Joi.date().optional(),
+    page:Joi.number().optional(),
+    pageSize:Joi.number().optional(),
+
+}).required()
 
 export const userSearch=Joi.object({
     userId:Joi.number().optional(),

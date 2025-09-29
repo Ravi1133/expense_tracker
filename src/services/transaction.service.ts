@@ -7,26 +7,74 @@ import { redisClient } from "../utils/redis";
 
 export const addTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
     console.log("transaction run")
-    let { amount, categoryId, type, userId, description ,transactionDate} = req.body as TransactionBody
-    let addedTransation = await prisma.transaction.create({ data: { amount, categoryId, userId, type, description,transactionDate } })
+    let { amount, categoryId, type, userId, description, transactionDate } = req.body as TransactionBody
+    let addedTransation = await prisma.transaction.create({ data: { amount, categoryId, userId, type, description, transactionDate } })
     return res.status(201).send({ message: predefinetext.RESOURCE_CREATED, transaction: addedTransation })
 }
 
 export const getTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("transaction run")
-    if(!req?.user)return
-    let id = req.user.id
-    let cacheData = await redisClient.get(`${req.params.id}`)
-    let transaction=[]
+    console.log("transaction run");
+
+    if (!req?.user) return;
+
+    console.log("req.body", req.body);
+
+    const { categoryId, amount, type, page, pageSize } = req.body as TransactionSearcBody;
+    const userId = req.user.id;
+
+    // ✅ Create a proper unique cache key
+    const cacheKey = `transaction:${userId}:${categoryId || "all"}:${type || "all"}:${amount || "all"}:${page}:${pageSize}`;
+
+    let transaction: any = {};
+    let where: any = { status: "ACTIVE" };
+    if(userId)where.userId=userId
+    if (categoryId) where.categoryId = categoryId;
+    if (type) where.type = type;
+    if (amount) where.amount = { lte: amount };
+
+    // ✅ Check Redis cache
+    const cacheData = await redisClient.get(cacheKey);
+
     if (cacheData) {
-        transaction=JSON.parse(cacheData)
+        console.log("cache data available");
+        transaction = JSON.parse(cacheData);
     } else {
-        transaction = await prisma.transaction.findMany({ where: { userId: id },include:{user:{select:{id:true,name:true,email:true}},category:{}} })
-        await redisClient.setEx(`${req.params.id}`, 60,JSON.stringify(transaction))
+        // Count total records
+        const totalCount = await prisma.transaction.count({ where });
+
+        const pagination = {
+            page,
+            pageSize,
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        };
+
+        const take = pageSize;
+        const skip = (page - 1) * pageSize; // ✅ Fixed skip calculation
+        console.log("where in get transaction",where)
+        // Fetch fresh data
+        const extractedData = await prisma.transaction.findMany({
+            where,
+            take,
+            skip,
+            include: {
+                user: { select: { id: true, name: true, email: true } },
+                category: {},
+            },
+        });
+        transaction = { data: extractedData, pagination };
+        // ✅ Save to Redis with proper key
+        await redisClient.setEx(cacheKey, 60, JSON.stringify(transaction));
     }
-    let message = transaction.length ? predefinetext.RESOURCE_FETCHED : predefinetext.NO_DATA_FOUND
-    res.send({ message: message, transaction })
-}
+
+    const message = transaction.data?.length
+        ? predefinetext.RESOURCE_FETCHED
+        : predefinetext.NO_DATA_FOUND;
+
+    res.send({ message, transaction });
+};
+
+
 export const getAllTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
     console.log("transaction run")
     let { categoryId, pageSize, page, userId, type, amount } = req.body as TransactionSearcBody
@@ -41,16 +89,23 @@ export const getAllTransaction_service = async (req: Request, res: Response, nex
     let take = pageSize ? parseInt(pageSize.toString()) : 10
     let skip = page ? (parseInt(page.toString()) - 1) * take : 0
 
-    let transation = await prisma.transaction.findMany({ where, take, skip, orderBy: { createdAt: "desc" } })
+    let extractedData = await prisma.transaction.findMany({
+        where, take, skip, include: {
+            user: { select: { id: true, name: true, email: true } },
+            category: {},
+        }, orderBy: { createdAt: "desc" }
+    })
     let totalCount = await prisma.transaction.count({ where })
-
-    let message = transation.length ? predefinetext.RESOURCE_FETCHED : predefinetext.NO_DATA_FOUND
+    let transaction = {}
+    let message = extractedData.length ? predefinetext.RESOURCE_FETCHED : predefinetext.NO_DATA_FOUND
     res.send({
-        message: message, data: transation, pagination: {
-            totalCount,
-            page,
-            skip,
-            totalPages: Math.ceil(totalCount / take)
+        message: message, transaction: {
+            data: extractedData, pagination: {
+                totalCount,
+                page,
+                skip,
+                totalPages: Math.ceil(totalCount / take)
+            }
         }
     })
 }

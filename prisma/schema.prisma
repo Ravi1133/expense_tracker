@@ -34,6 +34,7 @@ model User {
   email     String   @unique
   gender    Gender   @default(male)
   dob       DateTime      @default(now())
+  role      String    @default("user")
   password  String
   status    Status  @default(ACTIVE)
   createdAt DateTime @default(now())
