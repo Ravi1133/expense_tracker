@@ -51,9 +51,12 @@ export const addTransactionSchema=Joi.object({
     amount:Joi.number().required().messages({
         "any.required": "Amount is required",
     }),
-     type:Joi.string().required().valid(TransactionType.EXPENSE,TransactionType.INCOME).messages({
+    type:Joi.string().required().valid(TransactionType.EXPENSE,TransactionType.INCOME).messages({
         "any.required":"type is required",
         "any.only":"INCOME and EXPENSE are allowe in Feild"
+    }),
+    transactionDate:Joi.date().required().max(new Date()).messages({
+        "any.required":"Transaction Date is required"
     }),
     description:Joi.string().max(300)
 }).required()
@@ -75,6 +78,53 @@ export const updateCategorySchema=Joi.object({
         "any.only":"INCOME and EXPENSE are allowe in Feild"
     })
 }).min(1).required()
+
+export const transactionSearch=Joi.object({
+    userId:Joi.number().optional(),
+    categoryId:Joi.number().optional(),
+    amount:Joi.number().optional(),
+    date:Joi.date().optional(),
+    page:Joi.number().optional(),
+    pageSize:Joi.number().optional(),
+
+}).required()
+
+export const userSearch=Joi.object({
+    userId:Joi.number().optional(),
+    gender:Joi.string().optional(),
+    name:Joi.string().optional(),
+    status:Joi.string().valid("ACTIVE","INACTIVE").optional(),
+    page:Joi.number().optional(),
+    pageSize:Joi.number().optional(),
+
+}).required()
+
+export const validateUserSearch = (req: Request, res: Response, next:NextFunction) => {
+    let { error, value } = userSearch.validate(req.body, {
+        abortEarly: true,
+        stripUnknown: true
+    })
+     if (error) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: error.details.map((err) => err.message),
+      });
+    }
+    next()
+}
+export const validateTransactionSearch = (req: Request, res: Response, next:NextFunction) => {
+    let { error, value } = transactionSearch.validate(req.body, {
+        abortEarly: true,
+        stripUnknown: true
+    })
+     if (error) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: error.details.map((err) => err.message),
+      });
+    }
+    next()
+}
 
 export const validateRegisterBody = (req: Request, res: Response, next:NextFunction) => {
     let { error, value } = registerUserSchema.validate(req.body, {
@@ -128,6 +178,7 @@ export const validateAddCategoryBody = (req: Request, res: Response, next:NextFu
     }
     next()
 }
+
 export const validateUpdateCategoryBody = (req: Request, res: Response, next:NextFunction) => {
     let { error, value } = updateCategorySchema.validate(req.body, {
         abortEarly: true,

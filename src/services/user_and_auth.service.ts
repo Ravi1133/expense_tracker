@@ -4,6 +4,7 @@ import { Gender } from "../generated/prisma";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { predefinetext } from "../utils/predefineText";
+import { userSeachBody } from "../utils/interfaces";
 type RegisterUserBody = {
     name: string;
     email: string;
@@ -47,43 +48,67 @@ export const loginUser_service = async (req: Request, res: Response, next: NextF
         }
 
         const isMatch = await bcrypt.compare(password, userData.password)
+
         if (!isMatch) {
             return res.status(401).json({ message: predefinetext.WRONG_PASSWORD })
         }
 
         let token = jwt.sign({ id: userData.id, name: userData.name }, JWT_KEY, { expiresIn: "3d" })
+        let { name, gender, id, status } = userData
         return res.status(200).json({
             message: "Login Successfully",
-            token: token
+            token: token,
+            email, name, gender, id, status
         })
     } catch (err) {
         next(err)
     }
 
 }
-        
-        
+
+
 export const resetPassword_service = (req: Request, res: Response) => { }
-export const logout_service = (req: Request, res: Response) => { }
-export const getUser_service = (req: Request, res: Response) => { 
-    
+export const logout_service = (req: Request, res: Response, next: NextFunction) => {
+
 }
-export const getUserById_service = async(req: Request, res: Response,next:NextFunction) => {
-    try{
-        console.log("req.params",req.params)
-        let userId=parseInt(req.params.id,10)
-        
+export const getUser_service = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let { name, page, status, pageSize, userId } = req.body as userSeachBody
+        let where: any = { status: "ACTIVE" }
+        if (userId) where.userId = userId
+        if (name) where.name = {
+            contains: name,     // partial match
+            mode: "insensitive" // case-insensitive search
+        };
+        // if (status) where.status = status
+        if (pageSize) where.pageSize = pageSize
+
+        let take = pageSize || 10
+        let skip = page - 1 || 1
+
+        let userData = await prisma.user.findMany({ where, take, skip, orderBy: { createdAt: "desc" } })
+        let totalCount = await prisma.user.count({ where, orderBy: { createdAt: "desc" } })
+        res.status(200).json({ message: predefinetext.RESOURCE_FETCHED, userData, totalCount, page: page, skip, totalPage: Math.ceil(totalCount / take) })
+    } catch (err) {
+        next(err)
+    }
+}
+export const getUserById_service = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log("req.params", req.params)
+        let userId = parseInt(req.params.id, 10)
+
         if (isNaN(userId)) {
             return res.status(400).json({ message: "Invalid user id" });
         }
-        
-        let userData=  await  prisma.user.findUnique({where:{id:userId}})
-        return res.status(200).json({userData})
-    }catch(err){
-        console.log(err,"err")
-        next(err)        
+
+        let userData = await prisma.user.findUnique({ where: { id: userId } })
+        return res.status(200).json({ userData })
+    } catch (err) {
+        console.log(err, "err")
+        next(err)
     }
- }
+}
 export const deleteUserById_service = (req: Request, res: Response) => { }
 export const getUsers_service = (req: Request, res: Response) => { }
 
