@@ -77,7 +77,7 @@ export const getTransaction_service = async (req: Request, res: Response, next: 
 
 export const getAllTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
     console.log("transaction run")
-    let { categoryId, pageSize, page, userId, type, amount } = req.body as TransactionSearcBody
+    let { categoryId, pageSize, page, userId, type, amount ,startDate,endDate} = req.body as TransactionSearcBody
     let id = parseInt(req.params.id)
     const where: any = { status: "ACTIVE" }
 
@@ -85,10 +85,12 @@ export const getAllTransaction_service = async (req: Request, res: Response, nex
     if (type) where.type = type
     if (amount) where.amount = { lte: amount }
     if (userId) where.userId = userId
+    if(startDate)where.transactionDate={gte: new Date(startDate)}
+    if(endDate)where.transactionDate={ lte:new Date(endDate)}
 
     let take = pageSize ? parseInt(pageSize.toString()) : 10
     let skip = page ? (parseInt(page.toString()) - 1) * take : 0
-
+    console.log("where ingetall",where)
     let extractedData = await prisma.transaction.findMany({
         where, take, skip, include: {
             user: { select: { id: true, name: true, email: true } },
@@ -110,11 +112,57 @@ export const getAllTransaction_service = async (req: Request, res: Response, nex
     })
 }
 
-export const updateTransaction_service = (req: Request, res: Response, next: NextFunction) => {
-    console.log("transaction run")
-    res.send({ message: "hii transaction" })
-}
 
+export const updateTransaction_service = async ( req: Request,res: Response,next: NextFunction) => {
+  try {
+    console.log("update transaction run");
+    
+    let {
+        id,
+      amount,
+      categoryId,
+      type,
+      userId,
+      description,
+      transactionDate,
+    } = req.body as Partial<TransactionBody> &{id:string};
+
+    // Check if transaction exists
+    const existingTransaction = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existingTransaction) {
+      return res
+        .status(404)
+        .send({ message: "Transaction not found" });
+    }
+
+    // Update the transaction
+    let data:any={}
+    if( transactionDate) data.transactionDate =new Date(transactionDate)
+    if( amount) data.amount =amount
+    if( categoryId) data.categoryId =categoryId
+    if( type) data.type =type
+    if( description) data.description =description
+    console.log("data to update",data)
+    const cacheKey = `transaction:${userId}:${categoryId || "all"}:${type || "all"}:${amount || "all"}:1:10`;
+    const cacheData = await redisClient.del(cacheKey);
+    
+    const updatedTransaction = await prisma.transaction.update({
+      where: { id: Number(id) },
+      data
+    });
+
+    return res.status(200).send({
+      message: predefinetext.RESOURCE_UPDATED || "Transaction updated successfully",
+      transaction: updatedTransaction,
+    });
+  } catch (error) {
+    console.error("Error updating transaction:", error);
+    next(error);
+  }
+};
 
 export const deleteTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
     console.log("transaction run")

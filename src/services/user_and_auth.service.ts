@@ -11,6 +11,12 @@ type RegisterUserBody = {
     gender: Gender;   // Prisma enum
     password: string;
 };
+type UpdateUserBody = {
+    name?: string;
+    email?: string;
+    gender?: Gender;   // Prisma enum
+    password?: string;
+};
 type LoginBodyType = {
     email: string,
     password: string
@@ -33,6 +39,36 @@ export const registerUser_service = async (req: Request, res: Response, next: Ne
         })
         console.log("step check")
         res.send({ message: "hi from register service", userData: userData })
+    } catch (err) {
+        console.log("error catch in register user")
+        next(err)
+    }
+}
+
+
+export const updateUser_service = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let {gender, name, password } = req.body as UpdateUserBody
+        console.log("req.body", req.body)
+        let userId
+        if(req.user)userId=req.user.id
+        let dataToUpdate:UpdateUserBody={}
+        if(password){
+            let hashPassword = await bcrypt.hash(password, saltRound)
+            dataToUpdate.password=hashPassword
+        }
+        if(gender){
+            dataToUpdate.gender=gender
+        }
+        if(name){
+            dataToUpdate.name=name
+        }
+        let userData = await prisma.user.update({
+            where:{id:userId},
+            data: dataToUpdate
+        })
+        console.log("step check")
+        res.send({ message: predefinetext.RESOURCE_UPDATED, userData: userData })
     } catch (err) {
         console.log("error catch in register user")
         next(err)
@@ -81,7 +117,7 @@ export const getUser_service = async (req: Request, res: Response, next: NextFun
             mode: "insensitive" // case-insensitive search
         };
         // if (status) where.status = status
-        if (pageSize) where.pageSize = pageSize
+        
 
         let take = pageSize || 10
         let skip = page - 1 || 1
@@ -89,7 +125,7 @@ export const getUser_service = async (req: Request, res: Response, next: NextFun
         let userData = await prisma.user.findMany({ where, take, skip, orderBy: { createdAt: "desc" } })
         console.log("userData",userData)
         let totalCount = await prisma.user.count({ where, orderBy: { createdAt: "desc" } })
-        res.status(200).json({ message: predefinetext.RESOURCE_FETCHED, userData, totalCount, page: page, skip, totalPage: Math.ceil(totalCount / take) })
+        res.status(200).json({ message: predefinetext.RESOURCE_FETCHED, userData, totalCount, page: page,pageSize:pageSize||0, skip, totalPage: Math.ceil(totalCount / take) })
     } catch (err) {
         next(err)
     }

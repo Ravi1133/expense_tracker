@@ -25,7 +25,9 @@ export interface TransactionSearcBody{
     amount:number,
     type:TransactionType.EXPENSE|TransactionType.INCOME,
     page:number,
-    pageSize:number
+    pageSize:number,
+    startDate:Date,
+    endDate:Date
 }
 export interface categoryBody{
     name:string,
