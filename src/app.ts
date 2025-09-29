@@ -9,6 +9,11 @@ import { userBody } from "./utils/interfaces"
 import { authRateLimit, transactionRateLimit } from "./utils/utliFunction"
 import { redisConnect } from "./utils/redis"
 import cors from "cors"
+import { setupSwagger } from "./swagger/swagger"
+
+
+
+console.log("setupSwagger",setupSwagger)
 declare module "express-serve-static-core" {
     interface Request {
         user?: userBody
@@ -21,7 +26,7 @@ declare global {
     }
   }
 }
-const app: Application = express()
+const app = express()
 app.use(express.json())
 app.use(cors())
 dotenv.config()
@@ -34,6 +39,7 @@ app.use("/category", categoryRouter)
 app.use("/userAuth", userAndauthRouter)
 app.use("/transaction", transactionRoute)
 
+setupSwagger(app);
 
 
 app.use(errorHandler);
