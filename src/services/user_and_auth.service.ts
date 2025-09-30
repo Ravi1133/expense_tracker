@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { prisma } from "../db/connection"
-import { Gender } from "../generated/prisma";
+// import { Gender } from "../generated/prisma";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { predefinetext } from "../utils/predefineText";
@@ -8,13 +8,13 @@ import { userSeachBody } from "../utils/interfaces";
 type RegisterUserBody = {
     name: string;
     email: string;
-    gender: Gender;   // Prisma enum
+    gender: "male"|"female";   
     password: string;
 };
 type UpdateUserBody = {
     name?: string;
     email?: string;
-    gender?: Gender;   // Prisma enum
+    gender?: "male"|"female";  
     password?: string;
 };
 type LoginBodyType = {
