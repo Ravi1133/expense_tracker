@@ -2,6 +2,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
 import { updateCategories } from "../controllers/categories";
+import swaggerFile from "./swaggerFile.json"
 console.log("swagger.ts file loaded ✅");
 
 const options: swaggerJsdoc.Options = {
@@ -25,6 +26,6 @@ const swaggerSpec = swaggerJsdoc(options);
 
 export const setupSwagger = (app: Express): void => {
   console.log("Swagger setup function called ✅");
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 };
 console.log(updateCategories,"updateCategories")

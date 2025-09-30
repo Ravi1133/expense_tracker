@@ -1,0 +1,30 @@
+take clone
+install all dependency
+migrate prisma
+
+with docker install and run redis
+with docker install and run postgress
+with pm2 start the app
+
+
+
+git clone https://github.com/Ravi1133/expense_tracker.git
+npm i
+npx prisma migrate dev
+
+docker pull redis:latest
+docker run -d \
+  --name my-redis \
+  -p 6379:6379 \
+  redis:latest
+
+docker pull postgres:latest
+docker run -d \
+  --name my-postgres \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=admin123 \
+  -e POSTGRES_DB=tracker \
+  -p 5432:5432 \
+  postgres:latest
+
+pm2 start

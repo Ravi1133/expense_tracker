@@ -7,13 +7,23 @@
   },
   "servers": [
     {
+      "url": "http://13.48.144.42:5000"
+    },
+    {
       "url": "http://localhost:5000"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
     }
   ],
   "paths": {
     "/userAuth/login": {
       "post": {
-        "tags": ["UserAuth"],
+        "tags": [
+          "userAuth"
+        ],
         "summary": "Login a user",
         "requestBody": {
           "required": true,
@@ -21,11 +31,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "password"],
+                "required": [
+                  "email",
+                  "password"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "shashi123@gmail.com"
+                    "example": "ravikant@gmail.com"
                   },
                   "password": {
                     "type": "string",
@@ -70,6 +83,511 @@
             }
           }
         }
+      }
+    },
+    "/userAuth/register": {
+      "post": {
+        "tags": [
+          "userAuth"
+        ],
+        "summary": "Register a new user",
+        "description": "Registers a new user with name, email, mobile, gender, and password.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "admin@gmail.com"
+                  },
+                  "mobile": {
+                    "type": "integer",
+                    "example": 9900009900
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "other"
+                    ],
+                    "example": "male"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "Demo@1234"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "mobile",
+                  "gender",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User created successfully",
+                  "user": {
+                    "id": "123",
+                    "name": "admin",
+                    "email": "admin@gmail.com"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (validation failed)"
+          },
+          "409": {
+            "description": "Email already exists"
+          }
+        }
+      }
+    },
+    "/userAuth/updateUser": {
+      "patch": {
+        "tags": [
+          "userAuth"
+        ],
+        "summary": "Update user details (e.g., password)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "example": "Ravikant@123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/transaction/addTransaction": {
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Add a new transaction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoryId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 200
+                  },
+                  "transactionDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2025-08-22"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "INCOME",
+                      "EXPENSE"
+                    ],
+                    "example": "EXPENSE"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Golgappe"
+                  },
+                  "userId": {
+                    "type": "integer",
+                    "example": 20
+                  }
+                },
+                "required": [
+                  "categoryId",
+                  "amount",
+                  "transactionDate",
+                  "type",
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction added successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/transaction/updateTransaction": {
+      "patch": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Update an existing transaction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "example": 12
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 6000
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction updated successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/transaction/getTransaction": {
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Get paginated list of transactions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "pageSize": {
+                    "type": "integer",
+                    "example": 10
+                  }
+                },
+                "required": [
+                  "page",
+                  "pageSize"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of transactions"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/transaction/deleteTransaction/{id}": {
+      "delete": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Delete a transaction by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction deleted successfully"
+          },
+          "404": {
+            "description": "Transaction not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/category/getCategories": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get all categories for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of categories",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Food",
+                    "type": "EXPENSE"
+                  },
+                  {
+                    "id": 2,
+                    "name": "Salary",
+                    "type": "INCOME"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/category/addCategory": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Add a new category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Rapido Drive"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "INCOME",
+                      "EXPENSE"
+                    ],
+                    "example": "INCOME"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 9,
+                  "name": "Rapido Drive",
+                  "type": "INCOME"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/category/updateCategory/{id}": {
+      "patch": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Update an existing category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 9
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Rapido Drive Fun"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 9,
+                  "name": "Rapido Drive Fun",
+                  "type": "INCOME"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }
