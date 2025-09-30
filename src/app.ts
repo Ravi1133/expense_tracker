@@ -9,7 +9,7 @@ import { userBody } from "./utils/interfaces"
 import { authRateLimit, transactionRateLimit } from "./utils/utliFunction"
 import { redisConnect } from "./utils/redis"
 import cors from "cors"
-import { setupSwagger } from "./swagger/swagger"
+import { setupSwagger } from "./swaggerFolder/swagger"
 
 
 

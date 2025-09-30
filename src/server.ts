@@ -1,4 +1,6 @@
 import app from "./app";
+import { updateTransaction } from "./controllers/transactions";
+
 
 const PORT = process.env.PORT || 5000;
 app.get("/healthCheck",(req,res)=>{

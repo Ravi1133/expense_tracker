@@ -11,7 +11,23 @@ export const addCategory_service = async (req: Request, res: Response, next: Nex
     return res.status(201).send({ message: predefinetext.RESOURCE_CREATED, category: categoryData })
 }
 
-export const updateCategoriy_service = (req: Request, res: Response, next: NextFunction) => {
+export const updateCategoriy_service = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let id = parseInt(req.params.id)
+        let { name, type } = req.body as Partial<categoryBody>
+        let payload: Partial<categoryBody> = {}
+        if (name) {
+            payload.name = name
+        }
+        if (type) {
+            payload.type = type
+        }
+        let updatedCategory = await prisma.category.update({ where: { id: id }, data: payload })
+        return res.status(200).send({ message: predefinetext.RESOURCE_UPDATED, category: updatedCategory })
+
+    } catch (err) {
+        next(err)
+    }
 }
 
 export const deleteCategory_service = () => {
@@ -24,7 +40,7 @@ export const getCategories_service = async (req: Request, res: Response, next: N
         categories = JSON.parse(cacheData)
     } else {
         categories = await prisma.category.findMany()
-        await redisClient.setEx("category", 3600,JSON.stringify(categories))
+        await redisClient.setEx("category", 3600, JSON.stringify(categories))
     }
     return res.status(200).send({ categories })
     // let categories = await prisma.category.findMany()
