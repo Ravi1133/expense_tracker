@@ -6,12 +6,27 @@ import { Status } from "../utils/enums";
 import { redisClient } from "../utils/redis";
 
 export const addTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("transaction run")
-    let { amount, categoryId, type, userId, description, transactionDate } = req.body as TransactionBody
-    if(transactionDate)transactionDate=new Date(transactionDate)
-    let addedTransation = await prisma.transaction.create({ data: { amount, categoryId, userId, type, description, transactionDate } })
-    return res.status(201).send({ message: predefinetext.RESOURCE_CREATED, transaction: addedTransation })
-}
+    console.log("transaction run");
+    let { amount, categoryId, type, userId, description, transactionDate } = req.body as TransactionBody;
+    if (transactionDate) transactionDate = new Date(transactionDate);
+
+    let addedTransaction = await prisma.transaction.create({
+        data: { amount, categoryId, userId, type, description, transactionDate }
+    });
+
+    
+    const pattern = `transaction:${userId}:*`;
+    const keys = await redisClient.keys(pattern);
+    if (keys.length > 0) {
+        await redisClient.del(keys);
+        console.log("Cache invalidated for user:", userId);
+    }
+
+    return res.status(201).send({
+        message: predefinetext.RESOURCE_CREATED,
+        transaction: addedTransaction
+    });
+};
 
 export const getTransaction_service = async (req: Request, res: Response, next: NextFunction) => {
     console.log("transaction run");
